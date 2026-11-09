@@ -32,6 +32,8 @@ A concepção, especificação técnica, regras de negócio e critérios de qual
 | **Pedro Lucas Sales Larini** | [![GitHub](https://img.shields.io/badge/GitHub-PedroLarini-181717?style=flat&logo=github)](https://github.com/PedroLarini) | Modelagem de dados, arquitetura da API em Express, conexão com banco via pool, transações SQL (ACID), lógica de parcelamento e cálculo das faturas de cartão de crédito. |
 | **Renan Cáceres Anselmo** | [![GitHub](https://img.shields.io/badge/GitHub-RenanCaceres-181717?style=flat&logo=github)](https://github.com/RenanCaceres) | Arquitetura SPA em React, gerenciamento de estado global com `AuthContext`, cliente HTTP centralizado com interceptores JWT, telas de relatórios, gráficos e documentação. |
 
+A divisão ágil detalhada das tarefas e histórias de usuário (garantindo aprendizado igualitário de 50%/50% em full stack) está disponível no documento [`PLANO.md`](./PLANO.md).
+
 ---
 
 ## 📌 Sumário

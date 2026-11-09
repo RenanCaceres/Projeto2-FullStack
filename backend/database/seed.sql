@@ -1,0 +1,25 @@
+-- ============================================================================
+-- ARQUIVO: database/seed.sql
+-- RESPONSABILIDADE: Script de carga inicial de dados para testes e demonstração.
+-- ============================================================================
+--
+-- O QUE DEVE SER FEITO NESTE ARQUIVO:
+-- 1. Inserir no mínimo 2 usuários fictícios com hashes de senha válidos gerados via bcrypt.
+--    Exemplo: Usuário A (ex.: usuarioA@teste.com / senha123) e Usuário B (ex.: usuarioB@teste.com / senha123)
+--    para validação do isolamento de dados no teste de apresentação.
+--
+-- 2. Inserir as categorias padrão para cada usuário:
+--    - Entradas: Salário, Rendimentos, Freelance, Outros.
+--    - Saídas: Moradia, Alimentação, Mobilidade, Lazer, Saúde, Educação.
+--
+-- 3. Inserir fontes e destinos para cada usuário:
+--    - Contas: Conta Corrente Banco do Brasil, Poupança Caixa.
+--    - Cartões de crédito com dia_fechamento, dia_vencimento e limite:
+--      Ex.: Cartão Nubank (fechamento dia 3, vencimento dia 10, limite R$ 3.000,00).
+--      Ex.: Cartão Visa (fechamento dia 25, vencimento dia 5, limite R$ 5.000,00).
+--
+-- 4. Inserir dados históricos de lançamentos cobrindo ao menos 3 meses:
+--    - Lançamentos comuns de entradas e saídas em dinheiro/conta corrente.
+--    - Pelo menos uma compra parcelada no cartão (ex.: 3x de R$ 100,00 -> R$ 33,34 + R$ 33,33 + R$ 33,33)
+--      com o mesmo grupo_parcelamento (UUID) distribuído entre os meses para testar as faturas (RF9).
+--    - Dados suficientes para testar os relatórios com comparação com o mês anterior (RF7 e RF8).

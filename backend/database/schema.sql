@@ -1,0 +1,47 @@
+-- ============================================================================
+-- ARQUIVO: database/schema.sql
+-- RESPONSABILIDADE: Script DDL de criação e modelagem do banco de dados (PostgreSQL).
+-- ============================================================================
+--
+-- O QUE DEVE SER FEITO NESTE ARQUIVO:
+-- 1. Criação da tabela 'usuarios':
+--    - id (SERIAL PRIMARY KEY)
+--    - nome (VARCHAR NOT NULL)
+--    - email (VARCHAR NOT NULL, com índice único LOWER(email) para evitar duplicatas case-insensitive)
+--    - cpf (VARCHAR(11) NOT NULL UNIQUE, armazenando apenas os 11 dígitos numéricos)
+--    - senha_hash (VARCHAR(255) NOT NULL, armazenando o hash com salt do bcrypt)
+--    - criado_em (TIMESTAMP NOT NULL DEFAULT NOW())
+--
+-- 2. Criação da tabela 'categorias':
+--    - id (SERIAL PRIMARY KEY)
+--    - usuario_id (INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE)
+--    - nome (VARCHAR(50) NOT NULL)
+--    - tipo (VARCHAR(7) NOT NULL CHECK (tipo IN ('entrada', 'saida')))
+--    - Constraint UNIQUE (usuario_id, tipo, nome) para impedir nomes repetidos por usuário e tipo.
+--
+-- 3. Criação da tabela 'fontes_destinos':
+--    - id (SERIAL PRIMARY KEY)
+--    - usuario_id (INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE)
+--    - nome (VARCHAR(50) NOT NULL)
+--    - tipo (VARCHAR(15) NOT NULL CHECK (tipo IN ('renda', 'conta', 'cartao_credito')))
+--    - dia_fechamento (SMALLINT CHECK BETWEEN 1 AND 31 - obrigatório se cartão)
+--    - dia_vencimento (SMALLINT CHECK BETWEEN 1 AND 31 - obrigatório se cartão)
+--    - limite (NUMERIC(12, 2) CHECK >= 0 - obrigatório se cartão)
+--    - Constraint UNIQUE (usuario_id, nome).
+--
+-- 4. Criação da tabela 'lancamentos':
+--    - id (SERIAL PRIMARY KEY)
+--    - usuario_id (INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE)
+--    - tipo (VARCHAR(7) NOT NULL CHECK (tipo IN ('entrada', 'saida')))
+--    - descricao (VARCHAR(120) NOT NULL)
+--    - valor (NUMERIC(12, 2) NOT NULL CHECK (valor > 0) para precisão monetária)
+--    - data (DATE NOT NULL)
+--    - categoria_id (INTEGER NOT NULL REFERENCES categorias(id))
+--    - fonte_destino_id (INTEGER NOT NULL REFERENCES fontes_destinos(id))
+--    - parcela_atual (SMALLINT NOT NULL DEFAULT 1)
+--    - total_parcelas (SMALLINT NOT NULL DEFAULT 1 CHECK BETWEEN 1 AND 48)
+--    - grupo_parcelamento (UUID NULL, preenchido com o mesmo UUID em compras parceladas)
+--    - criado_em (TIMESTAMP NOT NULL DEFAULT NOW())
+--
+-- 5. Índices de desempenho:
+--    - CREATE INDEX idx_lancamentos_usuario_data ON lancamentos (usuario_id, data);
