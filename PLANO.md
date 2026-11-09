@@ -20,14 +20,48 @@ Adotamos a prática ágil de **Fatiamento Vertical (*Vertical Slicing*)**, combi
 
 ---
 
-## ⚖️ 2. Matriz de Divisão de Responsabilidades (50% / 50%)
+## 🗂 2.1 Mapeamento Detalhado: Arquivo por Arquivo e Responsáveis
 
-| Módulo / Épico | Pedro Lucas Sales Larini | Renan Cáceres Anselmo |
-| :--- | :--- | :--- |
-| **Épico 1: Autenticação & Usuários** | **Fluxo de Cadastro (Full Stack):**<br>• Modelagem da tabela `usuarios`<br>• Hash seguro com `bcrypt`<br>• Validação matemática de CPF (módulo 11) no back<br>• Rota `POST /api/auth/cadastro`<br>• Tela de Cadastro no React com máscaras e erros por campo | **Fluxo de Sessão & JWT (Full Stack):**<br>• Configuração do Pool e JWT (`src/config/`)<br>• Middleware `autenticar.js` (Bearer token)<br>• Rota `POST /api/auth/login` e `GET /api/auth/me`<br>• Criação do `AuthContext` e `useAuth`<br>• Tela de Login e componente `RotaProtegida` |
-| **Épico 2: Cadastros Base** | **Módulo de Categorias (Full Stack):**<br>• Tabela `categorias` e constraint UNIQUE<br>• Model e rotas `GET`, `POST`, `PUT`, `DELETE /api/categorias`<br>• Bloqueio de exclusão de categorias com vínculos<br>• Tela de Gestão de Categorias em React (Entrada/Saída) | **Módulo de Fontes/Destinos (Full Stack):**<br>• Tabela `fontes_destinos` e validações de cartão<br>• Model e rotas CRUD de contas e cartões<br>• Validação dos campos de limite e fechamento<br>• Tela de Gestão de Contas e Cartões em React |
-| **Épico 3: Lançamentos & Faturas** | **Módulo de Parcelamentos (Full Stack):**<br>• Lógica transacional (`BEGIN...COMMIT`) com pool<br>• Distribuição exata dos centavos de compras parceladas<br>• Agrupamento por UUID (`grupo_parcelamento`)<br>• Modal de cadastro de compra parcelada no React<br>• Exclusão individual vs em lote de parcelas | **Módulo de Lançamentos & Faturas (Full Stack):**<br>• CRUD de lançamentos simples com filtros e paginação<br>• Agregações para totais de receitas, despesas e saldos<br>• Lógica da regra de fechamento/vencimento de faturas (RF9)<br>• Tela de Extrato de Lançamentos com paginação<br>• Tela de Faturas de Cartão com limites no React |
-| **Épico 4: Relatórios & Cloud** | **Relatório por Categorias & Back Cloud:**<br>• Endpoint `GET /api/relatorios/categorias`<br>• Queries SQL agregadas com `GROUP BY` e comparativo de período anterior<br>• Componente `<GraficoCategorias />` (Recharts Donut)<br>• Tela de Relatórios de Categorias<br>• Provisionamento do Banco Neon e Deploy da API | **Relatório Fontes, Desafio & Vercel:**<br>• Endpoint `GET /api/relatorios/fontes-destinos`<br>• Endpoint `GET /api/saude-financeira` (Desafio Extra)<br>• Componente `<GraficoFontes />` (Recharts Barras)<br>• Tela do Desafio de Saúde Financeira<br>• Configuração do `vercel.json` e Deploy Front no Vercel |
+Para eliminar ambiguidades e evitar conflitos no Git, cada arquivo do projeto tem um responsável primário definido para sua implementação:
+
+| Camada | Arquivo | Responsável | Sprint | O que será implementado |
+| :--- | :--- | :--- | :---: | :--- |
+| **BD** | `backend/database/schema.sql` | **Pedro** | S1 | Tabelas `usuarios`, constraints UNIQUE, índices e tipos NUMERIC. |
+| **BD** | `backend/database/seed.sql` | **Renan** | S1 | Dados de carga inicial (2 usuários de teste, categorias e 3 meses de histórico). |
+| **Config** | `backend/src/config/db.js` | **Renan** | S1 | Pool de conexões do PostgreSQL (`pg`) com suporte a SSL. |
+| **Config** | `backend/src/config/jwt.js` | **Renan** | S1 | Funções utilitárias de assinatura e verificação do token JWT. |
+| **Server** | `backend/src/server.js` | **Ambos (Pair)**| S1 | Inicialização do Express, middlewares de CORS/JSON e registro das rotas. |
+| **Middlewares** | `backend/src/middlewares/validar.js` | **Pedro** | S1 | Validação de CPF (módulo 11), máscaras e sanitização de dados. |
+| **Middlewares** | `backend/src/middlewares/autenticar.js` | **Renan** | S1 | Extração e verificação do cabeçalho `Authorization: Bearer`. |
+| **Middlewares** | `backend/src/middlewares/tratarErros.js` | **Renan** | S1 | Captura centralizada de erros (PostgreSQL 23505 -> 409, 400, 500). |
+| **Models** | `backend/src/models/Usuario.js` | **Pedro** | S1 | Queries parametrizadas para criação com bcrypt e busca por e-mail. |
+| **Models** | `backend/src/models/Categoria.js` | **Pedro** | S2 | Queries de CRUD de categorias e criação do kit padrão. |
+| **Models** | `backend/src/models/FonteDestino.js` | **Renan** | S2 | Queries de contas e validações de dados de cartão de crédito. |
+| **Models** | `backend/src/models/Lancamento.js` | **Pedro & Renan**| S3 | Transações SQL de parcelamentos (Pedro) e listagem/filtros (Renan). |
+| **Models** | `backend/src/models/Relatorio.js` | **Pedro & Renan**| S4 | Queries `GROUP BY` de categorias (Pedro) e regra de faturas/saúde (Renan). |
+| **Routes** | `backend/src/routes/auth.routes.js` | **Pedro & Renan**| S1 | Endpoint `/cadastro` (Pedro) e endpoints `/login` e `/me` (Renan). |
+| **Routes** | `backend/src/routes/categorias.routes.js` | **Pedro** | S2 | Endpoints REST do CRUD de categorias com bloqueio de exclusão. |
+| **Routes** | `backend/src/routes/fontesDestinos.routes.js` | **Renan** | S2 | Endpoints REST de contas bancárias e cartões de crédito. |
+| **Routes** | `backend/src/routes/lancamentos.routes.js` | **Pedro & Renan**| S3 | Rota de compra parcelada (Pedro) e rota de extrato paginado (Renan). |
+| **Routes** | `backend/src/routes/relatorios.routes.js` | **Pedro & Renan**| S4 | Rota `/relatorios/categorias` (Pedro) e `/faturas` (Renan). |
+| **Routes** | `backend/src/routes/saudeFinanceira.routes.js`| **Renan** | S4 | Endpoint do Desafio de Saúde Financeira (+10 pontos). |
+| **Front Config**| `frontend/src/services/api.js` | **Renan** | S1 | Instância Axios com interceptors de token e logout automático no 401. |
+| **Front Context**| `frontend/src/contexts/AuthContext.jsx` | **Renan** | S1 | Provedor global com persistência no `localStorage`. |
+| **Front Guard** | `frontend/src/components/RotaProtegida.jsx` | **Renan** | S1 | Redirecionamento de usuários não autenticados para `/login`. |
+| **Front Base** | `frontend/src/App.jsx` e `main.jsx` | **Ambos (Pair)**| S1 | Configuração do React Router e montagem das páginas. |
+| **Front Base** | `frontend/src/components/Navbar.jsx` e `Sidebar.jsx`| **Pedro** | S2 | Layout base, cabeçalho e menu lateral responsivo. |
+| **Front Base** | `frontend/src/components/Modal.jsx` | **Renan** | S2 | Modal reutilizável para formulários e confirmações. |
+| **Front Pages**| `frontend/src/components/pages/CadastroPage.jsx` | **Pedro** | S1 | Tela de cadastro com máscara de CPF e mensagens de validação. |
+| **Front Pages**| `frontend/src/components/pages/LoginPage.jsx` | **Renan** | S1 | Tela de login com e-mail/senha e tratamento de 401. |
+| **Front Pages**| `frontend/src/components/pages/CategoriasPage.jsx` | **Pedro** | S2 | Tela de gestão de categorias (Entrada/Saída) e feedback de erro. |
+| **Front Pages**| `frontend/src/components/pages/FontesDestinosPage.jsx`| **Renan** | S2 | Tela de contas e cartões com limite e datas de fechamento. |
+| **Front Pages**| `frontend/src/components/pages/DashboardPage.jsx` | **Ambos (Pair)**| S2 | Resumo mensal (receitas, despesas, saldo e atalhos rápidos). |
+| **Front Pages**| `frontend/src/components/pages/LancamentosPage.jsx` | **Pedro & Renan**| S3 | Modal de parcelamento (Pedro) e tabela com filtros/paginação (Renan). |
+| **Front Pages**| `frontend/src/components/pages/FaturasPage.jsx` | **Renan** | S3 | Previsão e histórico de faturas de cartão com barras de limite. |
+| **Front Charts**| `frontend/src/components/GraficoCategorias.jsx` | **Pedro** | S4 | Gráfico Recharts de pizza/rosca para saídas por categoria. |
+| **Front Charts**| `frontend/src/components/GraficoFontes.jsx` | **Renan** | S4 | Gráfico Recharts de barras para entradas/saídas por conta. |
+| **Front Pages**| `frontend/src/components/pages/RelatoriosPage.jsx` | **Pedro** | S4 | Painel analítico com filtros de data e comparativo com mês anterior. |
+| **Front Pages**| `frontend/src/components/pages/SaudeFinanceiraPage.jsx`| **Renan** | S4 | Painel do Desafio com Score, métricas e dicas personalizadas. |
 
 ---
 
@@ -128,11 +162,26 @@ Para disponibilizar a aplicação online sem custos durante o período letivo e 
 
 ---
 
-## 🚀 5. Guia de Deploy no Vercel (Passo a Passo)
+## 🚀 5. Guia de Deploy e Arquitetura em Nuvem
 
-Como o front-end é uma SPA com rotas no cliente (`react-router-dom`), o arquivo [frontend/vercel.json](file:///home/renan/Documentos/GitHub/Projeto2-FullStack/frontend/vercel.json) já foi criado com as regras de *rewrite* para evitar erros 404 ao recarregar a página.
+### ❓ "Conectar o projeto no Vercel já não roda o Back-End?"
 
-### Passo a Passo para o Deploy:
+Esta é uma dúvida muito comum:
+* **Por padrão, NÃO.** O Vercel é primariamente uma plataforma para **Front-End estático e SPAs** (Vite, React, Next.js). Servidores Express tradicionais executam como processos contínuos de longa duração (`app.listen(PORT)` ouvindo requisições 24 horas por dia). O Vercel **não** roda processos contínuos de fundo nesse modelo.
+* **É possível rodar o Express no Vercel?** Sim, mas apenas adaptando a API para o modelo **Serverless** (onde o Express é envelopado em funções sob demanda que "acordam" a cada requisição e "dormem" em seguida).
+* **Por que o modelo Serverless no Vercel NÃO é o ideal para o Projeto 2:**
+  1. **Pool de Conexões:** Funções Serverless criam e destroem conexões a cada chamada, podendo esgotar o limite de conexões do banco de dados relacional.
+  2. **Rate Limiting em Memória:** O `express-rate-limit` (requisito de segurança) guarda as tentativas em memória RAM. Em funções serverless efêmeras, essa proteção em memória perde o estado entre chamadas.
+  3. **Conformidade com a Disciplina:** O livro didático da Profª Juliana (Capítulos 10 e 11) ensina a arquitetura cliente-servidor tradicional com servidor Node.js/Express rodando via `app.listen()`.
+
+### 💡 A Solução Ideal Adotada:
+* **Front-End (React/Vite) no Vercel:** Hospedagem gratuita de altíssima velocidade com CDN global e HTTPS automático.
+* **Back-End (Node.js/Express) no Render (ou Railway):** Hospedagem gratuita de **Web Service contínuo**, onde o servidor Express roda exatamente como ensinado na disciplina (`npm start` com `app.listen(PORT)` e pool de conexões persistente).
+* **Banco de Dados no Neon:** PostgreSQL gerenciado na nuvem gratuito com conexão pronta para o Render.
+
+---
+
+### Passo a Passo para o Deploy no Vercel (Front-End):
 1. **Subir o código para o GitHub**:
    ```bash
    git add .
