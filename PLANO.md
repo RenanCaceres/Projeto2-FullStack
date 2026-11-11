@@ -22,46 +22,51 @@ Adotamos a prática ágil de **Fatiamento Vertical (*Vertical Slicing*)**, combi
 
 ## 🗂 2.1 Mapeamento Detalhado: Arquivo por Arquivo e Responsáveis
 
-Para eliminar ambiguidades e evitar conflitos no Git, cada arquivo do projeto tem um responsável primário definido para sua implementação:
+Para eliminar ambiguidades e evitar conflitos no Git, cada arquivo do projeto tem um responsável primário e uma branch definidos para sua implementação:
 
-| Camada | Arquivo | Responsável | Sprint | O que será implementado |
-| :--- | :--- | :--- | :---: | :--- |
-| **BD** | `backend/database/schema.sql` | **Pedro** | S1 | Tabelas `usuarios`, constraints UNIQUE, índices e tipos NUMERIC. |
-| **BD** | `backend/database/seed.sql` | **Renan** | S1 | Dados de carga inicial (2 usuários de teste, categorias e 3 meses de histórico). |
-| **Config** | `backend/src/config/db.js` | **Renan** | S1 | Pool de conexões do PostgreSQL (`pg`) com suporte a SSL. |
-| **Config** | `backend/src/config/jwt.js` | **Renan** | S1 | Funções utilitárias de assinatura e verificação do token JWT. |
-| **Server** | `backend/src/server.js` | **Ambos (Pair)**| S1 | Inicialização do Express, middlewares de CORS/JSON e registro das rotas. |
-| **Middlewares** | `backend/src/middlewares/validar.js` | **Pedro** | S1 | Validação de CPF (módulo 11), máscaras e sanitização de dados. |
-| **Middlewares** | `backend/src/middlewares/autenticar.js` | **Renan** | S1 | Extração e verificação do cabeçalho `Authorization: Bearer`. |
-| **Middlewares** | `backend/src/middlewares/tratarErros.js` | **Renan** | S1 | Captura centralizada de erros (PostgreSQL 23505 -> 409, 400, 500). |
-| **Models** | `backend/src/models/Usuario.js` | **Pedro** | S1 | Queries parametrizadas para criação com bcrypt e busca por e-mail. |
-| **Models** | `backend/src/models/Categoria.js` | **Pedro** | S2 | Queries de CRUD de categorias e criação do kit padrão. |
-| **Models** | `backend/src/models/FonteDestino.js` | **Renan** | S2 | Queries de contas e validações de dados de cartão de crédito. |
-| **Models** | `backend/src/models/Lancamento.js` | **Pedro & Renan**| S3 | Transações SQL de parcelamentos (Pedro) e listagem/filtros (Renan). |
-| **Models** | `backend/src/models/Relatorio.js` | **Pedro & Renan**| S4 | Queries `GROUP BY` de categorias (Pedro) e regra de faturas/saúde (Renan). |
-| **Routes** | `backend/src/routes/auth.routes.js` | **Pedro & Renan**| S1 | Endpoint `/cadastro` (Pedro) e endpoints `/login` e `/me` (Renan). |
-| **Routes** | `backend/src/routes/categorias.routes.js` | **Pedro** | S2 | Endpoints REST do CRUD de categorias com bloqueio de exclusão. |
-| **Routes** | `backend/src/routes/fontesDestinos.routes.js` | **Renan** | S2 | Endpoints REST de contas bancárias e cartões de crédito. |
-| **Routes** | `backend/src/routes/lancamentos.routes.js` | **Pedro & Renan**| S3 | Rota de compra parcelada (Pedro) e rota de extrato paginado (Renan). |
-| **Routes** | `backend/src/routes/relatorios.routes.js` | **Pedro & Renan**| S4 | Rota `/relatorios/categorias` (Pedro) e `/faturas` (Renan). |
-| **Routes** | `backend/src/routes/saudeFinanceira.routes.js`| **Renan** | S4 | Endpoint do Desafio de Saúde Financeira (+10 pontos). |
-| **Front Config**| `frontend/src/services/api.js` | **Renan** | S1 | Instância Axios com interceptors de token e logout automático no 401. |
-| **Front Context**| `frontend/src/contexts/AuthContext.jsx` | **Renan** | S1 | Provedor global com persistência no `localStorage`. |
-| **Front Guard** | `frontend/src/components/RotaProtegida.jsx` | **Renan** | S1 | Redirecionamento de usuários não autenticados para `/login`. |
-| **Front Base** | `frontend/src/App.jsx` e `main.jsx` | **Ambos (Pair)**| S1 | Configuração do React Router e montagem das páginas. |
-| **Front Base** | `frontend/src/components/Navbar.jsx` e `Sidebar.jsx`| **Pedro** | S2 | Layout base, cabeçalho e menu lateral responsivo. |
-| **Front Base** | `frontend/src/components/Modal.jsx` | **Renan** | S2 | Modal reutilizável para formulários e confirmações. |
-| **Front Pages**| `frontend/src/components/pages/CadastroPage.jsx` | **Pedro** | S1 | Tela de cadastro com máscara de CPF e mensagens de validação. |
-| **Front Pages**| `frontend/src/components/pages/LoginPage.jsx` | **Renan** | S1 | Tela de login com e-mail/senha e tratamento de 401. |
-| **Front Pages**| `frontend/src/components/pages/CategoriasPage.jsx` | **Pedro** | S2 | Tela de gestão de categorias (Entrada/Saída) e feedback de erro. |
-| **Front Pages**| `frontend/src/components/pages/FontesDestinosPage.jsx`| **Renan** | S2 | Tela de contas e cartões com limite e datas de fechamento. |
-| **Front Pages**| `frontend/src/components/pages/DashboardPage.jsx` | **Ambos (Pair)**| S2 | Resumo mensal (receitas, despesas, saldo e atalhos rápidos). |
-| **Front Pages**| `frontend/src/components/pages/LancamentosPage.jsx` | **Pedro & Renan**| S3 | Modal de parcelamento (Pedro) e tabela com filtros/paginação (Renan). |
-| **Front Pages**| `frontend/src/components/pages/FaturasPage.jsx` | **Renan** | S3 | Previsão e histórico de faturas de cartão com barras de limite. |
-| **Front Charts**| `frontend/src/components/GraficoCategorias.jsx` | **Pedro** | S4 | Gráfico Recharts de pizza/rosca para saídas por categoria. |
-| **Front Charts**| `frontend/src/components/GraficoFontes.jsx` | **Renan** | S4 | Gráfico Recharts de barras para entradas/saídas por conta. |
-| **Front Pages**| `frontend/src/components/pages/RelatoriosPage.jsx` | **Pedro** | S4 | Painel analítico com filtros de data e comparativo com mês anterior. |
-| **Front Pages**| `frontend/src/components/pages/SaudeFinanceiraPage.jsx`| **Renan** | S4 | Painel do Desafio com Score, métricas e dicas personalizadas. |
+| Camada | Arquivo | Responsável | Sprint | Branch | O que será implementado |
+| :--- | :--- | :--- | :---: | :--- | :--- |
+| **BD** | `backend/database/schema.sql` | **Pedro** | S1 | `feat/sprint1-pedro-cadastro` | Tabelas `usuarios`, constraints UNIQUE, índices e tipos NUMERIC. |
+| **BD** | `backend/database/seed.sql` | **Renan** | S1 | `feat/sprint1-renan-auth-jwt` | Dados de carga inicial (2 usuários de teste, categorias e 3 meses de histórico). |
+| **Config** | `backend/src/config/db.js` | **Renan** | S1 | `feat/sprint1-renan-auth-jwt` | Pool de conexões do PostgreSQL (`pg`) com suporte a SSL. |
+| **Config** | `backend/src/config/jwt.js` | **Renan** | S1 | `feat/sprint1-renan-auth-jwt` | Funções utilitárias de assinatura e verificação do token JWT. |
+| **Server** | `backend/src/server.js` | **Ambos (Pair)** | S1 | `dev` | Inicialização do Express, middlewares de CORS/JSON e registro das rotas. |
+| **Middlewares** | `backend/src/middlewares/validar.js` | **Pedro** | S1 | `feat/sprint1-pedro-cadastro` | Validação de CPF (módulo 11), máscaras e sanitização de dados. |
+| **Middlewares** | `backend/src/middlewares/autenticar.js` | **Renan** | S1 | `feat/sprint1-renan-auth-jwt` | Extração e verificação do cabeçalho `Authorization: Bearer`. |
+| **Middlewares** | `backend/src/middlewares/tratarErros.js` | **Renan** | S1 | `feat/sprint1-renan-auth-jwt` | Captura centralizada de erros (PostgreSQL 23505 -> 409, 400, 500). |
+| **Models** | `backend/src/models/Usuario.js` | **Pedro** | S1 | `feat/sprint1-pedro-cadastro` | Queries parametrizadas para criação com bcrypt e busca por e-mail. |
+| **Models** | `backend/src/models/Categoria.js` | **Pedro** | S2 | `feat/sprint2-pedro-categorias` | Queries de CRUD de categorias e criação do kit padrão. |
+| **Models** | `backend/src/models/FonteDestino.js` | **Renan** | S2 | `feat/sprint2-renan-fontes-destinos` | Queries de contas e validações de dados de cartão de crédito. |
+| **Models** | `backend/src/models/Lancamento.js` | **Pedro & Renan** | S3 | `feat/sprint3-pedro-parcelamentos` (Pedro)<br>`feat/sprint3-renan-lancamentos-faturas` (Renan) | Transações SQL de parcelamentos (Pedro) e listagem/filtros (Renan). |
+| **Models** | `backend/src/models/Relatorio.js` | **Pedro & Renan** | S4 | `feat/sprint4-pedro-relatorio-categorias` (Pedro)<br>`feat/sprint3-renan-lancamentos-faturas` (Renan - faturas)<br>`feat/sprint4-renan-relatorio-fontes-saude` (Renan - fontes/saúde) | Queries `GROUP BY` de categorias (Pedro) e regra de faturas/saúde (Renan). |
+| **Routes** | `backend/src/routes/auth.routes.js` | **Pedro & Renan** | S1 | `feat/sprint1-pedro-cadastro` (Pedro)<br>`feat/sprint1-renan-auth-jwt` (Renan) | Endpoint `/cadastro` (Pedro) e endpoints `/login` e `/me` (Renan). |
+| **Routes** | `backend/src/routes/categorias.routes.js` | **Pedro** | S2 | `feat/sprint2-pedro-categorias` | Endpoints REST do CRUD de categorias com bloqueio de exclusão. |
+| **Routes** | `backend/src/routes/fontesDestinos.routes.js` | **Renan** | S2 | `feat/sprint2-renan-fontes-destinos` | Endpoints REST de contas bancárias e cartões de crédito. |
+| **Routes** | `backend/src/routes/lancamentos.routes.js` | **Pedro & Renan** | S3 | `feat/sprint3-pedro-parcelamentos` (Pedro)<br>`feat/sprint3-renan-lancamentos-faturas` (Renan) | Rota de compra parcelada (Pedro) e rota de extrato paginado (Renan). |
+| **Routes** | `backend/src/routes/relatorios.routes.js` | **Pedro & Renan** | S4 | `feat/sprint4-pedro-relatorio-categorias` (Pedro)<br>`feat/sprint3-renan-lancamentos-faturas` (Renan - `/faturas`)<br>`feat/sprint4-renan-relatorio-fontes-saude` (Renan - `/fontes-destinos`) | Rota `/relatorios/categorias` (Pedro) e `/faturas` (Renan). |
+| **Routes** | `backend/src/routes/saudeFinanceira.routes.js` | **Renan** | S4 | `feat/sprint4-renan-relatorio-fontes-saude` | Endpoint do Desafio de Saúde Financeira (+10 pontos). |
+| **Front Config** | `frontend/src/services/api.js` | **Renan** | S1 | `feat/sprint1-renan-auth-jwt` | Instância Axios com interceptors de token e logout automático no 401. |
+| **Front Context** | `frontend/src/contexts/AuthContext.jsx` | **Renan** | S1 | `feat/sprint1-renan-auth-jwt` | Provedor global com persistência no `localStorage`. |
+| **Front Guard** | `frontend/src/components/RotaProtegida.jsx` | **Renan** | S1 | `feat/sprint1-renan-auth-jwt` | Redirecionamento de usuários não autenticados para `/login`. |
+| **Front Base** | `frontend/src/App.jsx` e `main.jsx` | **Ambos (Pair)** | S1 | `dev` | Configuração do React Router e montagem das páginas. |
+| **Front Base** | `frontend/src/components/Navbar.jsx` e `Sidebar.jsx` | **Pedro** | S2 | `feat/sprint2-pedro-categorias` | Layout base, cabeçalho e menu lateral responsivo. |
+| **Front Base** | `frontend/src/components/Modal.jsx` | **Renan** | S2 | `feat/sprint2-renan-fontes-destinos` | Modal reutilizável para formulários e confirmações. |
+| **Front Pages** | `frontend/src/components/pages/CadastroPage.jsx` | **Pedro** | S1 | `feat/sprint1-pedro-cadastro` | Tela de cadastro com máscara de CPF e mensagens de validação. |
+| **Front Pages** | `frontend/src/components/pages/LoginPage.jsx` | **Renan** | S1 | `feat/sprint1-renan-auth-jwt` | Tela de login com e-mail/senha e tratamento de 401. |
+| **Front Pages** | `frontend/src/components/pages/CategoriasPage.jsx` | **Pedro** | S2 | `feat/sprint2-pedro-categorias` | Tela de gestão de categorias (Entrada/Saída) e feedback de erro. |
+| **Front Pages** | `frontend/src/components/pages/FontesDestinosPage.jsx` | **Renan** | S2 | `feat/sprint2-renan-fontes-destinos` | Tela de contas e cartões com limite e datas de fechamento. |
+| **Front Pages** | `frontend/src/components/pages/DashboardPage.jsx` | **Ambos (Pair)** | S2 | `dev` | Resumo mensal (receitas, despesas, saldo e atalhos rápidos). |
+| **Front Pages** | `frontend/src/components/pages/LancamentosPage.jsx` | **Pedro & Renan** | S3 | `feat/sprint3-pedro-parcelamentos` (Pedro)<br>`feat/sprint3-renan-lancamentos-faturas` (Renan) | Modal de parcelamento (Pedro) e tabela com filtros/paginação (Renan). |
+| **Front Pages** | `frontend/src/components/pages/FaturasPage.jsx` | **Renan** | S3 | `feat/sprint3-renan-lancamentos-faturas` | Previsão e histórico de faturas de cartão com barras de limite. |
+| **Front Charts** | `frontend/src/components/GraficoCategorias.jsx` | **Pedro** | S4 | `feat/sprint4-pedro-relatorio-categorias` | Gráfico Recharts de pizza/rosca para saídas por categoria. |
+| **Front Charts** | `frontend/src/components/GraficoFontes.jsx` | **Renan** | S4 | `feat/sprint4-renan-relatorio-fontes-saude` | Gráfico Recharts de barras para entradas/saídas por conta. |
+| **Front Pages** | `frontend/src/components/pages/RelatoriosPage.jsx` | **Pedro** | S4 | `feat/sprint4-pedro-relatorio-categorias` | Painel analítico com filtros de data e comparativo com mês anterior. |
+| **Front Pages** | `frontend/src/components/pages/SaudeFinanceiraPage.jsx` | **Renan** | S4 | `feat/sprint4-renan-relatorio-fontes-saude` | Painel do Desafio com Score, métricas e dicas personalizadas. |
+
+> **Legenda das Branches:**
+> * **Arquivos individuais (`Pedro` ou `Renan`):** implementar na respectiva branch `feat/sprint*` e abrir PR para `dev`.
+> * **Arquivos compartilhados (`Pedro & Renan`):** cada integrante implementa sua parte na própria branch da sprint e integra via PR na `dev`.
+> * **Arquivos em dupla (`Ambos (Pair)`):** desenvolver em *pair programming* na branch `dev` (ou atualizar `dev` após integrar as rotas/páginas das branches `feat/*`).
 
 ---
 
@@ -208,10 +213,19 @@ Esta é uma dúvida muito comum:
 ## 🔄 6. Fluxo Git e Prevenção de Conflitos
 
 Para manter a harmonia do desenvolvimento ágil sem conflitos de mesclagem (*merge conflicts*):
-1. **Branches por História de Usuário**:
-   * `git switch main && git pull`
-   * `git switch -c feat/pedro-cadastro-usuarios`
-   * `git switch -c feat/renan-auth-jwt`
-2. **Revisão por Pares (Code Review)**:
-   * Antes de mesclar na branch `main`, o integrante abre um Pull Request e o outro revisa o código, testando a funcionalidade localmente.
+1. **Estrutura de Branches**:
+   * `main`: branch de produção/entrega (deploy contínuo no Vercel e Render).
+   * `dev`: branch de integração das sprints e desenvolvimento de arquivos em *pair programming* (`Ambos (Pair)`).
+   * **Branches por Sprint e Integrante**:
+     * **Sprint 1:** `feat/sprint1-pedro-cadastro` (Pedro) e `feat/sprint1-renan-auth-jwt` (Renan)
+     * **Sprint 2:** `feat/sprint2-pedro-categorias` (Pedro) e `feat/sprint2-renan-fontes-destinos` (Renan)
+     * **Sprint 3:** `feat/sprint3-pedro-parcelamentos` (Pedro) e `feat/sprint3-renan-lancamentos-faturas` (Renan)
+     * **Sprint 4:** `feat/sprint4-pedro-relatorio-categorias` (Pedro) e `feat/sprint4-renan-relatorio-fontes-saude` (Renan)
+2. **Sincronização antes de iniciar uma tarefa**:
+   * `git switch dev && git pull`
+   * `git switch feat/sprint1-pedro-cadastro && git merge dev` *(exemplo da S1 do Pedro; usar a branch correspondente à sprint)*
+   * `git switch feat/sprint1-renan-auth-jwt && git merge dev` *(exemplo da S1 do Renan)*
+3. **Revisão por Pares (Code Review) e Promoção**:
+   * Ao concluir uma tarefa, o integrante abre um Pull Request da sua branch `feat/sprint*` para a branch `dev`, e o outro revisa o código e testa localmente antes do merge.
+   * Ao final de cada sprint, após validar a integração na `dev`, realiza-se o Pull Request de `dev` para `main`.
    * Isso assegura que ambos conhecem detalhadamente todas as linhas do projeto para a apresentação de 10 minutos.
