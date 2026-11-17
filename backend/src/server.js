@@ -11,6 +11,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { pool } from './config/db.js';
+import authRoutes from './routes/auth.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -59,6 +60,8 @@ app.get('/api/health', async (req, res) => {
     });
   }
 });
+
+app.use('/api/auth', authRoutes);
 
 /**
  * ----------------------------------------------------------------------------
