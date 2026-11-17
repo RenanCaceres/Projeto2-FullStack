@@ -1,19 +1,59 @@
 /**
- * ============================================================================
- * ARQUIVO: src/models/Usuario.js
- * RESPONSABILIDADE: Camada de acesso ao banco e regras de persistência para Usuários.
- * ============================================================================
- * 
- * O QUE DEVE SER FEITO NESTE ARQUIVO:
- * 1. Importar o pool/query de src/config/db.js.
- * 2. Método criar({ nome, email, cpf, senhaHash }):
- *    - Inserir novo usuário no banco com query parametrizada:
- *      INSERT INTO usuarios (nome, email, cpf, senha_hash) VALUES ($1, $2, $3, $4) RETURNING id, nome, email, cpf;
- *    - Normalizar email com trim().toLowerCase() e CPF apenas com dígitos.
- * 3. Método buscarPorEmail(email):
- *    - Buscar registro pelo email normalizado (LOWER(email) = LOWER($1)) para o fluxo de login.
- * 4. Método buscarPorId(id):
- *    - Retornar dados do usuário (id, nome, email, cpf) EXCLUINDO obrigatoriamente a coluna senha_hash.
- * 5. Método verificarDuplicidade(email, cpf):
- *    - Checar prévia de existência (lembrando que a garantia real final é da constraint UNIQUE do banco).
+ * Camada de acesso ao banco para Usuários.
+ * Todas as consultas são parametrizadas.
  */
+
+import { query } from '../config/db.js';
+
+const normalizarEmail = (email) => String(email ?? '').trim().toLowerCase();
+const normalizarCpf = (cpf) => String(cpf ?? '').replace(/\D/g, '');
+
+export async function criar({ nome, email, cpf, senhaHash }) {
+  const { rows } = await query(
+    `INSERT INTO usuarios (nome, email, cpf, senha_hash)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, nome, email, cpf`,
+    [String(nome).trim(), normalizarEmail(email), normalizarCpf(cpf), senhaHash]
+  );
+  return rows[0];
+}
+
+// Retorna senha_hash porque é usado no fluxo de login.
+export async function buscarPorEmail(email) {
+  const { rows } = await query(
+    `SELECT id, nome, email, cpf, senha_hash
+       FROM usuarios
+      WHERE LOWER(email) = LOWER($1)`,
+    [normalizarEmail(email)]
+  );
+  return rows[0] ?? null;
+}
+
+// Nunca retorna senha_hash.
+export async function buscarPorId(id) {
+  const { rows } = await query(
+    `SELECT id, nome, email, cpf
+       FROM usuarios
+      WHERE id = $1`,
+    [id]
+  );
+  return rows[0] ?? null;
+}
+
+// Checagem prévia; a garantia final é a constraint UNIQUE do banco.
+export async function verificarDuplicidade(email, cpf) {
+  const { rows } = await query(
+    `SELECT
+        BOOL_OR(LOWER(email) = LOWER($1)) AS email_existe,
+        BOOL_OR(cpf = $2)                 AS cpf_existe
+       FROM usuarios
+      WHERE LOWER(email) = LOWER($1) OR cpf = $2`,
+    [normalizarEmail(email), normalizarCpf(cpf)]
+  );
+  return {
+    email: Boolean(rows[0]?.email_existe),
+    cpf: Boolean(rows[0]?.cpf_existe),
+  };
+}
+
+export default { criar, buscarPorEmail, buscarPorId, verificarDuplicidade };
