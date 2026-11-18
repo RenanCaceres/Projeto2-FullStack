@@ -5,6 +5,7 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import Usuario from '../models/Usuario.js';
+import Categoria from '../models/Categoria.js';
 import { validarCadastro } from '../middlewares/validar.js';
 
 const router = express.Router();
@@ -24,6 +25,7 @@ router.post('/cadastro', validarCadastro, async (req, res, next) => {
 
     const senhaHash = await bcrypt.hash(senha, 10);
     const usuario = await Usuario.criar({ nome, email, cpf, senhaHash });
+    await Categoria.criarPadrao(usuario.id);
 
     return res.status(201).json({ usuario });
   } catch (error) {
