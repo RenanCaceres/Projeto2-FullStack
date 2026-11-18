@@ -28,9 +28,11 @@ if (!connectionString) {
   console.warn('⚠️ AVISO: DATABASE_URL não definida nas variáveis de ambiente!');
 }
 
+const isLocal = !connectionString || connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+
 export const pool = new Pool({
   connectionString,
-  ssl: connectionString?.includes('neon.tech') ? { rejectUnauthorized: false } : undefined,
+  ssl: isLocal ? false : { rejectUnauthorized: false },
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,

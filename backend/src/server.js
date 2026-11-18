@@ -37,7 +37,22 @@ const PORT = process.env.PORT || 3001;
 
 // Middlewares globais
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Permite chamadas sem origin (ex: mobile, Postman, health checks)
+    if (!origin) return callback(null, true);
+    
+    // Se FRONTEND_URL estiver configurada exatamente igual
+    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL.replace(/\/$/, '')) {
+      return callback(null, true);
+    }
+
+    // Permite localhost e domínios da Vercel (.vercel.app)
+    if (origin.includes('localhost') || origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+
+    return callback(null, true);
+  },
   credentials: true,
 }));
 app.use(express.json());
