@@ -1,12 +1,6 @@
 /**
- * Painel analítico de gastos por categoria (RF7).
- *
- * Consome GET /relatorios/categorias duas vezes (período selecionado e período
- * anterior de mesmo tamanho), considera só as saídas e calcula percentual e
- * variação no cliente.
- *
- * Para incluir a aba de fontes/destinos (RF8), basta adicionar uma entrada em ABAS
- * e renderizar o conteúdo dela abaixo.
+ * Painel analítico de gastos por categoria (RF7) e por fontes/destinos (RF8).
+ * Integrado: Pedro Larini & Renan Cáceres
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -14,8 +8,12 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import api from '../../services/api.js';
 import Layout from '../Layout.jsx';
 import GraficoCategorias from '../GraficoCategorias.jsx';
+import GraficoFontes from '../GraficoFontes.jsx';
 
-const ABAS = [{ id: 'categorias', rotulo: 'Por categoria' }];
+const ABAS = [
+  { id: 'categorias', rotulo: 'Por categoria' },
+  { id: 'fontes', rotulo: 'Por contas e cartões' },
+];
 
 const inputClass =
   'px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-emerald-500 transition';
@@ -106,6 +104,7 @@ export default function RelatoriosPage() {
   const [modoPeriodo, setModoPeriodo] = useState('mes_atual');
   const [intervalo, setIntervalo] = useState(periodoDoMes(0));
   const [linhas, setLinhas] = useState([]);
+  const [linhasFontes, setLinhasFontes] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
 
@@ -121,6 +120,7 @@ export default function RelatoriosPage() {
     if (inicio > fim) {
       setErro('A data inicial não pode ser posterior à data final.');
       setLinhas([]);
+      setLinhasFontes([]);
       setCarregando(false);
       return;
     }
@@ -128,19 +128,25 @@ export default function RelatoriosPage() {
     setErro('');
     setCarregando(true);
     try {
-      const anterior = periodoAnterior(inicio, fim);
-      const [atual, passado] = await Promise.all([
-        api.get('/relatorios/categorias', { params: { inicio, fim } }),
-        api.get('/relatorios/categorias', { params: { inicio: anterior.inicio, fim: anterior.fim } }),
-      ]);
-      setLinhas(montarLinhas(somenteSaidas(atual.data), somenteSaidas(passado.data)));
+      if (abaAtiva === 'categorias') {
+        const anterior = periodoAnterior(inicio, fim);
+        const [atual, passado] = await Promise.all([
+          api.get('/relatorios/categorias', { params: { inicio, fim } }),
+          api.get('/relatorios/categorias', { params: { inicio: anterior.inicio, fim: anterior.fim } }),
+        ]);
+        setLinhas(montarLinhas(somenteSaidas(atual.data), somenteSaidas(passado.data)));
+      } else {
+        const resFontes = await api.get('/relatorios/fontes-destinos', { params: { inicio, fim } });
+        setLinhasFontes(resFontes.data || []);
+      }
     } catch (e) {
       setErro(e.response?.data?.erro || 'Não foi possível carregar o relatório.');
       setLinhas([]);
+      setLinhasFontes([]);
     } finally {
       setCarregando(false);
     }
-  }, [intervalo]);
+  }, [intervalo, abaAtiva]);
 
   useEffect(() => {
     carregar();
@@ -171,104 +177,144 @@ export default function RelatoriosPage() {
           ))}
         </div>
 
-        {abaAtiva === 'categorias' && (
-          <>
-            <div className="flex flex-wrap items-end gap-3 mb-6">
+        {/* Controles de Filtro de Período Compartilhados */}
+        <div className="flex flex-wrap items-end gap-3 mb-6">
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Período</label>
+            <select
+              value={modoPeriodo}
+              onChange={(e) => escolherModo(e.target.value)}
+              className={inputClass}
+            >
+              <option value="mes_atual">Mês atual</option>
+              <option value="mes_anterior">Mês anterior</option>
+              <option value="custom">Intervalo personalizado</option>
+            </select>
+          </div>
+
+          {modoPeriodo === 'custom' && (
+            <>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Período</label>
-                <select
-                  value={modoPeriodo}
-                  onChange={(e) => escolherModo(e.target.value)}
+                <label className="block text-xs text-slate-400 mb-1">De</label>
+                <input
+                  type="date"
+                  value={intervalo.inicio}
+                  onChange={(e) => setIntervalo({ ...intervalo, inicio: e.target.value })}
                   className={inputClass}
-                >
-                  <option value="mes_atual">Mês atual</option>
-                  <option value="mes_anterior">Mês anterior</option>
-                  <option value="custom">Intervalo personalizado</option>
-                </select>
+                />
               </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Até</label>
+                <input
+                  type="date"
+                  value={intervalo.fim}
+                  onChange={(e) => setIntervalo({ ...intervalo, fim: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
+            </>
+          )}
+        </div>
 
-              {modoPeriodo === 'custom' && (
-                <>
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">De</label>
-                    <input
-                      type="date"
-                      value={intervalo.inicio}
-                      onChange={(e) => setIntervalo({ ...intervalo, inicio: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Até</label>
-                    <input
-                      type="date"
-                      value={intervalo.fim}
-                      onChange={(e) => setIntervalo({ ...intervalo, fim: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                </>
+        {erro && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+            {erro}
+          </div>
+        )}
+
+        {carregando ? (
+          <p className="text-slate-400">Carregando...</p>
+        ) : abaAtiva === 'categorias' ? (
+          <div className="grid lg:grid-cols-2 gap-6">
+            <section className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <h2 className="font-semibold mb-1">Saídas por categoria</h2>
+              <p className="text-sm text-slate-400 mb-2">
+                Total no período: <strong className="text-white">{formatarMoeda(totalSaidas)}</strong>
+              </p>
+              <GraficoCategorias dados={linhas} />
+            </section>
+
+            <section className="bg-slate-900 border border-slate-800 rounded-xl p-4 overflow-x-auto">
+              <h2 className="font-semibold mb-3">Detalhamento e comparativo</h2>
+              {linhas.length === 0 ? (
+                <p className="text-slate-400 text-sm">Nenhuma saída registrada neste período.</p>
+              ) : (
+                <table className="w-full text-sm text-left">
+                  <thead>
+                    <tr className="text-slate-400 border-b border-slate-800">
+                      <th className="py-2">Categoria</th>
+                      <th className="py-2 text-right pr-2">Total</th>
+                      <th className="py-2 text-right pr-2">%</th>
+                      <th className="py-2 text-right">Variação</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {linhas.map((linha) => (
+                      <tr key={linha.id}>
+                        <td className="py-2 font-medium">{linha.nome}</td>
+                        <td className="py-2 pr-2 text-right">{formatarMoeda(linha.total)}</td>
+                        <td className="py-2 pr-2 text-right">
+                          {String(linha.percentual).replace('.', ',')}%
+                        </td>
+                        <td className="py-2 text-right">
+                          <Variacao linha={linha} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
-            </div>
+              {linhas.length > 0 && (
+                <p className="text-xs text-slate-500 mt-3">
+                  Período anterior (mesma duração), apenas nas categorias com saída agora:{' '}
+                  {formatarMoeda(totalAnterior)}
+                </p>
+              )}
+            </section>
+          </div>
+        ) : (
+          /* Aba: Fontes e Destinos (RF8) */
+          <div className="space-y-6">
+            <section className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <h2 className="font-semibold mb-1">Entradas e Saídas por Conta / Cartão</h2>
+              <p className="text-sm text-slate-400 mb-4">
+                Comparativo direto de movimentações em cada fonte cadastrada (RF8)
+              </p>
+              <GraficoFontes dados={linhasFontes} />
+            </section>
 
-            {erro && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-                {erro}
-              </div>
-            )}
-
-            {carregando ? (
-              <p className="text-slate-400">Carregando...</p>
-            ) : (
-              <div className="grid lg:grid-cols-2 gap-6">
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-                  <h2 className="font-semibold mb-1">Saídas por categoria</h2>
-                  <p className="text-sm text-slate-400 mb-2">
-                    Total no período: <strong className="text-white">{formatarMoeda(totalSaidas)}</strong>
-                  </p>
-                  <GraficoCategorias dados={linhas} />
-                </section>
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-4 overflow-x-auto">
-                  <h2 className="font-semibold mb-3">Detalhamento e comparativo</h2>
-                  {linhas.length === 0 ? (
-                    <p className="text-slate-500 text-sm">Nenhuma saída registrada no período.</p>
-                  ) : (
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-left text-slate-400 border-b border-slate-800">
-                          <th className="py-2 pr-2 font-medium">Categoria</th>
-                          <th className="py-2 pr-2 font-medium text-right">Total</th>
-                          <th className="py-2 pr-2 font-medium text-right">%</th>
-                          <th className="py-2 font-medium text-right">vs. anterior</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {linhas.map((linha) => (
-                          <tr key={linha.id} className="border-b border-slate-800/60">
-                            <td className="py-2 pr-2">{linha.nome}</td>
-                            <td className="py-2 pr-2 text-right">{formatarMoeda(linha.total)}</td>
-                            <td className="py-2 pr-2 text-right">
-                              {String(linha.percentual).replace('.', ',')}%
-                            </td>
-                            <td className="py-2 text-right">
-                              <Variacao linha={linha} />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                  {linhas.length > 0 && (
-                    <p className="text-xs text-slate-500 mt-3">
-                      Período anterior (mesma duração), apenas nas categorias com saída agora:{' '}
-                      {formatarMoeda(totalAnterior)}
-                    </p>
-                  )}
-                </section>
-              </div>
-            )}
-          </>
+            <section className="bg-slate-900 border border-slate-800 rounded-xl p-4 overflow-x-auto">
+              <h2 className="font-semibold mb-3">Detalhamento por Conta / Cartão</h2>
+              {linhasFontes.length === 0 ? (
+                <p className="text-slate-400 text-sm">Nenhum dado encontrado para o período.</p>
+              ) : (
+                <table className="w-full text-sm text-left">
+                  <thead>
+                    <tr className="text-slate-400 border-b border-slate-800">
+                      <th className="py-2">Conta / Cartão</th>
+                      <th className="py-2">Tipo</th>
+                      <th className="py-2 text-right">Entradas</th>
+                      <th className="py-2 text-right">Saídas</th>
+                      <th className="py-2 text-right">Saldo Período</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {linhasFontes.map((f) => (
+                      <tr key={f.id}>
+                        <td className="py-2 font-medium">{f.nome}</td>
+                        <td className="py-2 text-slate-400 capitalize">{f.tipo?.replace('_', ' ')}</td>
+                        <td className="py-2 text-right text-emerald-400">{formatarMoeda(f.entradas)}</td>
+                        <td className="py-2 text-right text-red-400">{formatarMoeda(f.saidas)}</td>
+                        <td className={`py-2 text-right font-semibold ${f.saldo >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {formatarMoeda(f.saldo)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </section>
+          </div>
         )}
       </div>
     </Layout>

@@ -11,8 +11,17 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { pool } from './config/db.js';
+
+// Rotas da aplicação
 import authRoutes from './routes/auth.routes.js';
 import categoriasRoutes from './routes/categorias.routes.js';
+import fontesDestinosRoutes from './routes/fontesDestinos.routes.js';
+import lancamentosRoutes from './routes/lancamentos.routes.js';
+import relatoriosRoutes from './routes/relatorios.routes.js';
+import saudeFinanceiraRoutes from './routes/saudeFinanceira.routes.js';
+
+// Middlewares
+import tratarErros from './middlewares/tratarErros.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,20 +71,20 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-app.use('/api/auth', authRoutes);
-app.use('/api/categorias', categoriasRoutes);
-
 /**
  * ----------------------------------------------------------------------------
- * ROTAS DA APLICAÇÃO (A serem acopladas pelos integrantes conforme o PLANO.md)
+ * ROTAS DA APLICAÇÃO (Pedro & Renan)
  * ----------------------------------------------------------------------------
- * Exemplo:
- * import authRoutes from './routes/auth.routes.js';
- * import categoriasRoutes from './routes/categorias.routes.js';
- * ...
- * app.use('/api/auth', authRoutes);
- * app.use('/api/categorias', categoriasRoutes);
  */
+app.use('/api/auth', authRoutes);
+app.use('/api/categorias', categoriasRoutes);
+app.use('/api/fontes-destinos', fontesDestinosRoutes);
+app.use('/api/lancamentos', lancamentosRoutes);
+app.use('/api/relatorios', relatoriosRoutes);
+app.use('/api/saude-financeira', saudeFinanceiraRoutes);
+
+// Middleware global de tratamento de erros
+app.use(tratarErros);
 
 const server = app.listen(PORT, async () => {
   console.log(`🚀 Servidor FinanFlow rodando na porta ${PORT}`);
