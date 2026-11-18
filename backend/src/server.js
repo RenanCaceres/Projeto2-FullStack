@@ -15,6 +15,8 @@ import { pool } from './config/db.js';
 // Rotas da aplicação
 import authRoutes from './routes/auth.routes.js';
 import fontesDestinosRoutes from './routes/fontesDestinos.routes.js';
+import lancamentosRoutes from './routes/lancamentos.routes.js';
+import relatoriosRoutes from './routes/relatorios.routes.js';
 
 // Middlewares
 import tratarErros from './middlewares/tratarErros.js';
@@ -74,6 +76,8 @@ app.get('/api/health', async (req, res) => {
  */
 app.use('/api/auth', authRoutes);
 app.use('/api/fontes-destinos', fontesDestinosRoutes);
+app.use('/api/lancamentos', lancamentosRoutes);
+app.use('/api/relatorios', relatoriosRoutes);
 
 // Middleware global de tratamento de erros
 app.use(tratarErros);
