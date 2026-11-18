@@ -36,6 +36,17 @@ A divisão ágil detalhada das tarefas e histórias de usuário (garantindo apre
 
 ---
 
+### 🌐 Aplicação em Produção (Deploy Ativo)
+
+| Camada | Plataforma | URL em Produção | Status |
+| :--- | :--- | :--- | :--- |
+| **Front-End (SPA)** | [Vercel](https://vercel.com) | [https://projeto2-full-stack-eosin.vercel.app](https://projeto2-full-stack-eosin.vercel.app) | ![Vercel](https://img.shields.io/badge/Vercel-Online-success?logo=vercel) |
+| **Back-End (API)** | [Render](https://render.com) | [https://finanflow-api-p1b8.onrender.com](https://finanflow-api-p1b8.onrender.com) | ![Render](https://img.shields.io/badge/Render-Online-success?logo=render) |
+| **Banco de Dados** | [Neon](https://neon.tech) | PostgreSQL 18.7 Serverless na nuvem | ![Neon](https://img.shields.io/badge/Neon-Connected-success?logo=postgresql) |
+| **Health Check** | API Endpoint | [`/api/health`](https://finanflow-api-p1b8.onrender.com/api/health) | ![Status](https://img.shields.io/badge/Health-OK-success) |
+
+---
+
 ## 📌 Sumário
 
 1. [Visão Geral](#-visão-geral)

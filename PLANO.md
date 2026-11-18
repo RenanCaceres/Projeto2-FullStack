@@ -179,10 +179,11 @@ Esta é uma dúvida muito comum:
   2. **Rate Limiting em Memória:** O `express-rate-limit` (requisito de segurança) guarda as tentativas em memória RAM. Em funções serverless efêmeras, essa proteção em memória perde o estado entre chamadas.
   3. **Conformidade com a Disciplina:** O livro didático da Profª Juliana (Capítulos 10 e 11) ensina a arquitetura cliente-servidor tradicional com servidor Node.js/Express rodando via `app.listen()`.
 
-### 💡 A Solução Ideal Adotada:
-* **Front-End (React/Vite) no Vercel:** Hospedagem gratuita de altíssima velocidade com CDN global e HTTPS automático.
-* **Back-End (Node.js/Express) no Render (ou Railway):** Hospedagem gratuita de **Web Service contínuo**, onde o servidor Express roda exatamente como ensinado na disciplina (`npm start` com `app.listen(PORT)` e pool de conexões persistente).
-* **Banco de Dados no Neon:** PostgreSQL gerenciado na nuvem gratuito com conexão pronta para o Render.
+### 💡 A Solução Ideal Adotada e Deploy Realizado:
+* **Front-End (React/Vite) no Vercel:** [https://projeto2-full-stack-eosin.vercel.app](https://projeto2-full-stack-eosin.vercel.app)
+* **Back-End (Node.js/Express) no Render:** [https://finanflow-api-p1b8.onrender.com](https://finanflow-api-p1b8.onrender.com)
+* **Banco de Dados no Neon:** PostgreSQL gerenciado na nuvem conectado via SSL pooler.
+* **Health Check:** [https://finanflow-api-p1b8.onrender.com/api/health](https://finanflow-api-p1b8.onrender.com/api/health)
 
 ---
 
@@ -203,10 +204,10 @@ Esta é uma dúvida muito comum:
 4. **Adicionar a Variável de Ambiente**:
    * Na seção **"Environment Variables"**, adicione:
      * **Name:** `VITE_API_URL`
-     * **Value:** `https://sua-api-no-render.onrender.com/api` (URL pública da API back-end gerada no Render).
+     * **Value:** `https://finanflow-api-p1b8.onrender.com/api` (URL pública da API back-end gerada no Render).
 5. **Realizar o Deploy**:
    * Clique no botão **"Deploy"**.
-   * Em menos de 1 minuto a aplicação estará online e acessível publicamente através de uma URL `.vercel.app`.
+   * Em menos de 1 minuto a aplicação estará online e acessível publicamente em `https://projeto2-full-stack-eosin.vercel.app`.
 
 ---
 

@@ -41,13 +41,18 @@ app.use(cors({
     // Permite chamadas sem origin (ex: mobile, Postman, health checks)
     if (!origin) return callback(null, true);
     
-    // Se FRONTEND_URL estiver configurada exatamente igual
-    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL.replace(/\/$/, '')) {
-      return callback(null, true);
-    }
+    const origensPermitidas = [
+      process.env.FRONTEND_URL,
+      'https://projeto2-full-stack-eosin.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:3000',
+    ].filter(Boolean).map((u) => u.replace(/\/$/, ''));
 
-    // Permite localhost e domínios da Vercel (.vercel.app)
-    if (origin.includes('localhost') || origin.endsWith('.vercel.app')) {
+    if (
+      origensPermitidas.includes(origin) ||
+      origin.includes('localhost') ||
+      origin.endsWith('.vercel.app')
+    ) {
       return callback(null, true);
     }
 
